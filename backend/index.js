@@ -314,7 +314,7 @@ app.post('/api/payment/verify', isLoggedIn, async (req, res) => {
 
 // --- REACT FRONTEND CATCH-ALL ---
 app.get(/^(?!\/api\/).*/, (req, res) => {
-    const clientBuildPath = path.join(__dirname, "client/build/index.html");
+    const clientBuildPath = path.join(__dirname, "../client/build/index.html");
     if (require('fs').existsSync(clientBuildPath)) {
         res.sendFile(clientBuildPath);
     } else {
