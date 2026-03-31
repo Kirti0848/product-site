@@ -1,8 +1,8 @@
 import axios from 'axios';
 
 // Backend ka poora URL
-const API_BASE = 'http://localhost:8081/api'; 
-const AUTH_BASE = 'http://localhost:8081'; // Auth routes aksar /api ke bina hote hain
+const API_BASE = (process.env.REACT_APP_API_URL || 'http://localhost:8081') + '/api'; 
+const AUTH_BASE = process.env.REACT_APP_API_URL || 'http://localhost:8081'; // Auth routes aksar /api ke bina hote hain
 
 const apiClient = axios.create({
     baseURL: API_BASE,
