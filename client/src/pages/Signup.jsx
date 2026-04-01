@@ -1,6 +1,7 @@
 import { useContext, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
+import { API } from '../services/api';
 
 const Signup = () => {
     const [formData, setFormData] = useState({
@@ -28,25 +29,13 @@ const Signup = () => {
         setError('');
 
         try {
-            const response = await fetch('/signup', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                credentials: 'include',
-                body: JSON.stringify(formData)
-            });
-
-            if (!response.ok) {
-                throw new Error('Signup failed');
-            }
-
-            const data = await response.json();
+            const response = await API.signup(formData);
+            const data = response.data;
             setUser(data.user);
             navigate('/');
         } catch (err) {
             console.error('Signup error:', err);
-            setError('Failed to create account. Please try again.');
+            setError(err.response?.data?.error || 'Failed to create account. Please try again.');
         } finally {
             setLoading(false);
         }

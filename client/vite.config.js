@@ -9,7 +9,8 @@ export default defineConfig({
   },
   server: {
     proxy: {
-      '/api': 'http://localhost:8081'
+      '/api': 'http://localhost:8081',
+      '/uploads': 'http://localhost:8081'
     }
   }
 })

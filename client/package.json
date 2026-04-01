@@ -17,8 +17,10 @@
     "vite": "^4.0.0"
   },
   "scripts": {
+    "dev": "vite",
     "start": "vite",
     "build": "vite build",
+    "preview": "vite preview",
     "test": "echo \"No tests specified\" && exit 0",
     "eject": "echo \"No eject\" && exit 0"
   },

@@ -29,7 +29,15 @@ const Cart = () => {
     const handleRemoveItem = async (itemId) => {
         try {
             await API.removeFromCart(itemId);
-            setCart(cart.filter(item => item._id !== itemId));
+            const updatedCart = cart.filter(item => item._id !== itemId);
+            setCart(updatedCart);
+            const totalQuantity = updatedCart.reduce(
+                (total, item) => total + (Number(item.quantity) || 0),
+                0
+            );
+            window.dispatchEvent(new CustomEvent('cart:updated', {
+                detail: { cartLength: totalQuantity }
+            }));
         } catch (err) {
             console.error('Failed to remove item:', err);
             alert('Error removing item from cart');
@@ -47,6 +55,13 @@ const Cart = () => {
                 return item;
             });
             setCart(updatedCart);
+            const totalQuantity = updatedCart.reduce(
+                (total, item) => total + (Number(item.quantity) || 0),
+                0
+            );
+            window.dispatchEvent(new CustomEvent('cart:updated', {
+                detail: { cartLength: totalQuantity }
+            }));
         } catch (err) {
             console.error('Failed to update quantity:', err);
             alert('Error updating quantity');
@@ -80,6 +95,9 @@ const Cart = () => {
                         });
 
                         if (verifyRes.data.success) {
+                            window.dispatchEvent(new CustomEvent('cart:updated', {
+                                detail: { cartLength: 0 }
+                            }));
                             alert('🎉 Payment successful!');
                             window.location.href = '/';
                         } else {
@@ -151,9 +169,10 @@ const Cart = () => {
                         <>
                             {cartItems.map(item => {
                                 // Image URL Fix
-                                const imageUrl = item.productId.image?.startsWith('http') 
-                                    ? item.productId.image 
-                                    : `http://localhost:8081${item.productId.image}`;
+                                const imagePath = item.productId.image || '';
+                                const imageUrl = imagePath.startsWith('http')
+                                    ? imagePath
+                                    : `http://localhost:8081${encodeURI(imagePath)}`;
 
                                 return (
                                     <div key={item._id} className="cart-card p-3 mb-3 shadow-sm bg-white rounded-3">

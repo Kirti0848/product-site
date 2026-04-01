@@ -1,6 +1,7 @@
 import { useContext, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
+import { API } from '../services/api';
 
 const Login = () => {
     const [formData, setFormData] = useState({
@@ -26,25 +27,13 @@ const Login = () => {
         setError('');
 
         try {
-            const response = await fetch('/login', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                credentials: 'include',
-                body: JSON.stringify(formData)
-            });
-
-            if (!response.ok) {
-                throw new Error('Login failed');
-            }
-
-            const data = await response.json();
+            const response = await API.login(formData);
+            const data = response.data;
             setUser(data.user);
             navigate('/');
         } catch (err) {
             console.error('Login error:', err);
-            setError('Invalid username or password');
+            setError(err.response?.data?.error || 'Invalid username or password');
         } finally {
             setLoading(false);
         }

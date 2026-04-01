@@ -1,12 +1,12 @@
 import axios from 'axios';
 
-// Backend ka poora URL
-const API_BASE = (process.env.VITE_API_URL || 'http://localhost:8081') + '/api'; 
-const AUTH_BASE = process.env.VITE_API_URL || 'http://localhost:8081'; // Auth routes aksar /api ke bina hote hain
+// Vite mein process.env ki jagah import.meta.env use hota hai
+const API_BASE = (import.meta.env.VITE_API_URL || 'http://localhost:8081') + '/api'; 
+const AUTH_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8081'; 
 
 const apiClient = axios.create({
     baseURL: API_BASE,
-    withCredentials: true // Cookies/Session ke liye zaroori hai
+    withCredentials: true 
 });
 
 export const API = {

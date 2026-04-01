@@ -6,7 +6,8 @@ import './Show.css';
 
 const Show = () => {
     const { id } = useParams();
-    const { user } = useContext(AuthContext);
+    const { user, setUser } = useContext(AuthContext);
+    const CART_COUNT_KEY = 'cartCount';
     const [product, setProduct] = useState(null);
     const [quantity, setQuantity] = useState(1);
     const [loading, setLoading] = useState(true);
@@ -33,11 +34,38 @@ const Show = () => {
             return;
         }
         try {
-            await API.addToCart(id, parseInt(quantity));
+            const qty = parseInt(quantity, 10) || 1;
+            const response = await API.addToCart(id, qty);
+
+            if (response.data?.success) {
+                let apiCart = Array.isArray(response.data.cart) ? response.data.cart : null;
+
+                try {
+                    const cartResponse = await API.getCart();
+                    if (Array.isArray(cartResponse.data?.cart)) {
+                        apiCart = cartResponse.data.cart;
+                    }
+                } catch (cartErr) {
+                    console.error('Failed to refresh cart after add:', cartErr);
+                }
+
+                const totalQuantity = apiCart
+                    ? apiCart.reduce((total, item) => total + (Number(item.quantity) || 0), 0)
+                    : (Number(localStorage.getItem(CART_COUNT_KEY)) || 0) + qty;
+
+                if (apiCart) {
+                    setUser((prev) => (prev ? { ...prev, cart: apiCart } : prev));
+                }
+
+                localStorage.setItem(CART_COUNT_KEY, String(totalQuantity));
+                window.dispatchEvent(new CustomEvent('cart:updated', {
+                    detail: { cartLength: totalQuantity }
+                }));
+            }
+
             navigate('/cart');
         } catch (err) {
             console.error('Failed to add to cart:', err);
-            alert('Error adding to cart');
         }
     };
 
@@ -71,12 +99,24 @@ const Show = () => {
         );
     }
 
+    const imagePath = product.image || '';
+    const imageUrl = imagePath.startsWith('http')
+        ? imagePath
+        : `http://localhost:8081${encodeURI(imagePath)}`;
+
     return (
         <div className="container product-container">
             <div className="row">
                 <div className="col-md-6 mb-4">
                     <div className="img-box shadow-sm">
-                        <img src={product.image} className="main-img" alt={product.title} />
+                        <img
+                            src={imageUrl}
+                            alt={product.title}
+                            className="main-img"
+                            onError={(e) => {
+                                e.currentTarget.src = 'http://localhost:8081/uploads/No_Image_Available.jpg';
+                            }}
+                        />
                     </div>
                 </div>
 

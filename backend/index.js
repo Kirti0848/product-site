@@ -74,17 +74,21 @@ const isAdmin = (req, res, next) => {
 // --- MULTER DISK STORAGE SETUP ---
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
-        cb(null, 'public/uploads/') 
+        cb(null, path.join(__dirname, 'public/uploads'));
     },
     filename: function (req, file, cb) {
+        const safeName = file.fieldname.replace(/[^a-zA-Z0-9-_]/g, '-');
         const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-        cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
+        cb(null, `${safeName}-${uniqueSuffix}${path.extname(file.originalname)}`);
     }
 });
 const upload = multer({ storage: storage });
 
 // --- MIDDLEWARE ---
-app.use(express.static(path.join(__dirname, "public")));
+// Serve uploaded images from backend/public/uploads
+app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
+// Serve built React app
+app.use(express.static(path.join(__dirname, '../client/build')));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 

@@ -1,29 +1,53 @@
+import { useContext } from 'react';
 import { Link } from 'react-router-dom';
+import { AuthContext } from '../context/AuthContext';
 import { API } from '../services/api'; // API import karna zaroori hai
 
 const ProductCard = ({ product }) => {
+    const CART_COUNT_KEY = 'cartCount';
+    const { setUser } = useContext(AuthContext);
     
     // Add to Cart Function
     const handleAddToCart = async () => {
         try {
             const response = await API.addToCart(product._id, 1);
             if (response.data.success) {
-                alert("🛒 Product added to cart successfully!");
+                let apiCart = Array.isArray(response.data.cart) ? response.data.cart : null;
+
+                // Always read latest cart from server so badge stays in sync immediately.
+                try {
+                    const cartResponse = await API.getCart();
+                    if (Array.isArray(cartResponse.data?.cart)) {
+                        apiCart = cartResponse.data.cart;
+                    }
+                } catch (cartErr) {
+                    console.error('Failed to refresh cart after add:', cartErr);
+                }
+
+                const totalQuantity = apiCart
+                    ? apiCart.reduce((total, item) => total + (Number(item.quantity) || 0), 0)
+                    : (Number(localStorage.getItem(CART_COUNT_KEY)) || 0) + 1;
+
+                if (apiCart) {
+                    setUser((prev) => (prev ? { ...prev, cart: apiCart } : prev));
+                }
+
+                localStorage.setItem(CART_COUNT_KEY, String(totalQuantity));
+                window.dispatchEvent(new CustomEvent('cart:updated', {
+                    detail: { cartLength: totalQuantity }
+                }));
             }
         } catch (err) {
-            if (err.response && err.response.status === 401) {
-                alert("⚠️ Please login first to add items to cart!");
-            } else {
-                alert("❌ Failed to add product to cart.");
-                console.error(err);
-            }
+            console.error('Failed to add product to cart:', err);
         }
     };
 
     // Image Path Fix: Agar image path '/' se shuru hota hai toh backend URL lagao
-    const imageUrl = product.image.startsWith('http') 
-        ? product.image 
-        : `http://localhost:8081${product.image}`;
+    const imagePath = product.image || '';
+const imageUrl = imagePath.startsWith('http')
+    ? imagePath
+    : `http://localhost:8081${encodeURI(imagePath)}`;
+    
 
     return (
         <div className="card h-100 shadow-sm border-0 product-card">
