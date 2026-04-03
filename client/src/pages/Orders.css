@@ -1,0 +1,157 @@
+:root {
+    --bg: #f8fafc;
+    --card: #ffffff;
+    --border: #e2e8f0;
+    --text: #0f172a;
+    --subtext: #64748b;
+    --primary: #2563eb;
+}
+
+/* PAGE */
+.orders-page {
+    background: var(--bg);
+    min-height: 100vh;
+}
+
+/* HERO (premium + subtle gradient) */
+.orders-hero {
+    background: linear-gradient(135deg, #0f172a 0%, #111827 100%);
+    color: #fff;
+    padding: 3rem 0;
+}
+
+/* REMOVE EXTRA EFFECT */
+.orders-hero::after {
+    display: none;
+}
+
+/* TAG */
+.orders-kicker,
+.section-tag {
+    background: rgba(255, 255, 255, 0.06);
+    color: #cbd5e1;
+    font-size: 0.7rem;
+    letter-spacing: 0.12em;
+}
+
+/* CARDS (PERFECT BALANCE) */
+.hero-summary-card,
+.recent-order-panel,
+.history-card,
+.empty-history {
+    background: var(--card);
+    border-radius: 14px;
+    border: 1px solid var(--border);
+    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.04);
+    transition: all 0.25s ease;
+}
+
+/* HOVER MAGIC ✨ */
+.recent-order-panel:hover,
+.history-card:hover,
+.insight-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+}
+
+/* HERO CARD (GLASS STYLE) */
+.hero-summary-card {
+    background: rgba(255, 255, 255, 0.06);
+    backdrop-filter: blur(6px);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+/* TYPOGRAPHY */
+.summary-value {
+    font-size: 2.2rem;
+    font-weight: 700;
+}
+
+.summary-label {
+    color: #cbd5e1;
+    font-size: 0.9rem;
+}
+
+/* ORDER TOTAL */
+.order-total,
+.history-total {
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: var(--text);
+}
+
+/* DETAIL BOXES */
+.detail-pill {
+    background: #f1f5f9;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 0.8rem;
+}
+
+.detail-pill span {
+    color: var(--subtext);
+    font-size: 0.7rem;
+}
+
+.detail-pill strong {
+    color: var(--text);
+    font-size: 0.9rem;
+}
+
+/* ORDER ROW */
+.order-item-row {
+    border-top: 1px solid #f1f5f9;
+    padding: 0.9rem 0;
+}
+
+/* IMAGE */
+.order-thumb-wrap {
+    background: #f1f5f9;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+}
+
+/* INSIGHT CARDS */
+.insight-card {
+    background: var(--card);
+    border-radius: 12px;
+    border: 1px solid var(--border);
+}
+
+/* TEXT */
+.insight-title {
+    color: var(--text);
+    font-weight: 600;
+}
+
+.insight-subtitle {
+    color: var(--subtext);
+}
+
+/* CUSTOMER BADGE */
+.customer-badge {
+    background: #f1f5f9;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+}
+
+/* EMPTY STATE */
+.empty-history {
+    border: 1px dashed var(--border);
+    background: #fff;
+}
+
+/* BUTTON (ADD THIS 🔥) */
+.btn-primary {
+    background: var(--primary);
+    color: #fff;
+    border-radius: 8px;
+    padding: 0.6rem 1.2rem;
+    border: none;
+    transition: 0.2s ease;
+}
+
+.btn-primary:hover {
+    background: #1d4ed8;
+    transform: scale(1.03);
+}

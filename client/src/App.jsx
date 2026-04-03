@@ -9,6 +9,7 @@ import EditProduct from './pages/EditProduct';
 import Home from './pages/Home';
 import Login from './pages/Login';
 import NewProduct from './pages/NewProduct';
+import Orders from './pages/Orders';
 import Show from './pages/Show';
 import Signup from './pages/Signup';
 
@@ -79,6 +80,14 @@ const AppRoutes = () => {
                     element={
                         <ProtectedRoute>
                             <Cart />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/orders"
+                    element={
+                        <ProtectedRoute>
+                            <Orders />
                         </ProtectedRoute>
                     }
                 />

@@ -1,5 +1,5 @@
 import { useContext, useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import { API } from '../services/api';
 import './Cart.css';
@@ -8,6 +8,7 @@ const Cart = () => {
     const { user } = useContext(AuthContext);
     const [cart, setCart] = useState([]);
     const [loading, setLoading] = useState(true);
+    const navigate = useNavigate();
 
     useEffect(() => {
         fetchCart();
@@ -98,8 +99,12 @@ const Cart = () => {
                             window.dispatchEvent(new CustomEvent('cart:updated', {
                                 detail: { cartLength: 0 }
                             }));
-                            alert('🎉 Payment successful!');
-                            window.location.href = '/';
+                            setCart([]);
+                            navigate('/orders', {
+                                state: {
+                                    recentOrder: verifyRes.data.order || null
+                                }
+                            });
                         } else {
                             alert('Payment verification failed');
                         }

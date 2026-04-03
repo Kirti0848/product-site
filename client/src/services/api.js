@@ -52,6 +52,12 @@ export const API = {
     verifyPayment: (paymentData) => 
         apiClient.post('/payment/verify', paymentData),
 
+    getOrderHistory: () =>
+        apiClient.get('/orders/history'),
+
+    getAdminOrderHistory: () =>
+        apiClient.get('/orders/admin-history'),
+
     // Auth (Inme baseURL use nahi hoga kyunki ye /api ke bahar ho sakte hain)
     signup: (userData) => 
         axios.post(`${AUTH_BASE}/signup`, userData, { withCredentials: true }),

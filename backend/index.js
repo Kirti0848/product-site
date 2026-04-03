@@ -6,6 +6,8 @@ const mongoose = require("mongoose");
 const path = require("path");
 const crypto = require('crypto');
 const Product = require("./models/product.js");
+
+
  
 const multer  = require('multer');
 const session = require("express-session");
@@ -13,6 +15,10 @@ const passport = require("passport");
 const LocalStrategy = require("passport-local");
 const User = require("./models/user.js");
 const Razorpay = require('razorpay');
+
+const RAZORPAY_KEY_ID = process.env.RAZORPAY_KEY_ID || 'rzp_test_SYzJH3fq8frE0V';
+const RAZORPAY_KEY_SECRET = process.env.RAZORPAY_KEY_SECRET || '28pI67ueyIjdDhl3dmYr7j0J';
+const IS_PRODUCTION = process.env.NODE_ENV === 'production';
 
 // --- CORS CONFIGURATION (Fixed for Session/Cookies) ---
 app.use(cors({ 
@@ -28,8 +34,8 @@ app.use(cors({
 }));
 
 const razorpay = new Razorpay({
-    key_id: process.env.RAZORPAY_KEY_ID || 'rzp_test_SYzJH3fq8frE0V',
-    key_secret: process.env.RAZORPAY_KEY_SECRET || '28pI67ueyIjdDhl3dmYr7j0J'
+    key_id: RAZORPAY_KEY_ID,
+    key_secret: RAZORPAY_KEY_SECRET
 });
 
 // --- SESSION CONFIGURATION ---
@@ -87,8 +93,12 @@ const upload = multer({ storage: storage });
 // --- MIDDLEWARE ---
 // Serve uploaded images from backend/public/uploads
 app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
-// Serve built React app
-app.use(express.static(path.join(__dirname, '../client/build')));
+
+// Serve built React app only in production deployment.
+if (IS_PRODUCTION) {
+    app.use(express.static(path.join(__dirname, '../client/build')));
+}
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -314,7 +324,7 @@ app.post("/api/checkout", isLoggedIn, async (req, res) => {
             orderId: order.id,
             amount: order.amount,
             currency: order.currency,
-            key_id: process.env.RAZORPAY_KEY_ID || razorpay.key_id
+            key_id: RAZORPAY_KEY_ID
         });
     } catch (err) {
         res.status(500).json({ error: 'Payment Error' });
@@ -322,28 +332,187 @@ app.post("/api/checkout", isLoggedIn, async (req, res) => {
 });
 
 app.post('/api/payment/verify', isLoggedIn, async (req, res) => {
-    const { razorpay_payment_id, razorpay_order_id, razorpay_signature } = req.body;
-    const generatedSignature = crypto.createHmac('sha256', process.env.RAZORPAY_KEY_SECRET || 'xStzabL5nY8P0PSGmutce3bE')
-        .update(`${razorpay_order_id}|${razorpay_payment_id}`)
-        .digest('hex');
+    try {
+        const { razorpay_payment_id, razorpay_order_id, razorpay_signature } = req.body;
+        const generatedSignature = crypto.createHmac('sha256', RAZORPAY_KEY_SECRET)
+            .update(`${razorpay_order_id}|${razorpay_payment_id}`)
+            .digest('hex');
 
-    if (generatedSignature === razorpay_signature) {
-        // Clear cart after successful payment
-        await User.findByIdAndUpdate(req.user._id, { $set: { cart: [] } });
-        return res.json({ success: true, message: 'Payment verified successfully' });
+        if (generatedSignature === razorpay_signature) {
+            const user = await User.findById(req.user._id).populate('cart.productId');
+
+            if (!user) {
+                return res.status(404).json({ success: false, error: 'User not found' });
+            }
+
+            const purchasedAt = new Date();
+            const items = user.cart
+                .filter(item => item.productId)
+                .map(item => ({
+                    productId: item.productId._id,
+                    title: item.productId.title,
+                    brand: item.productId.brand,
+                    image: item.productId.image,
+                    price: item.productId.price,
+                    quantity: item.quantity
+                }));
+
+            const totalAmount = items.reduce(
+                (sum, item) => sum + (Number(item.price) || 0) * (Number(item.quantity) || 0),
+                0
+            );
+
+            const orderHistoryEntry = {
+                razorpayOrderId: razorpay_order_id,
+                razorpayPaymentId: razorpay_payment_id,
+                currency: 'INR',
+                totalAmount,
+                items,
+                purchasedAt
+            };
+
+            await User.findByIdAndUpdate(req.user._id, {
+                $push: { orderHistory: orderHistoryEntry },
+                $set: { cart: [] }
+            });
+
+            return res.json({
+                success: true,
+                message: 'Payment verified successfully',
+                order: orderHistoryEntry
+            });
+        }
+
+        return res.status(400).json({ success: false, error: 'Invalid signature' });
+    } catch (err) {
+        return res.status(500).json({ success: false, error: 'Payment verification failed' });
     }
-    return res.status(400).json({ success: false, error: 'Invalid signature' });
 });
 
-// --- REACT FRONTEND CATCH-ALL ---
-app.get(/^(?!\/api\/).*/, (req, res) => {
-    const clientBuildPath = path.join(__dirname, "../client/build/index.html");
-    if (require('fs').existsSync(clientBuildPath)) {
+app.get('/api/orders/history', isLoggedIn, async (req, res) => {
+    try {
+        const user = await User.findById(req.user._id).select('orderHistory username email').lean();
+
+        if (!user) {
+            return res.status(404).json({ success: false, error: 'User not found' });
+        }
+
+        const orderHistory = (user.orderHistory || []).slice().sort((a, b) => {
+            return new Date(b.purchasedAt) - new Date(a.purchasedAt);
+        });
+
+        const summary = {
+            orderCount: orderHistory.length,
+            totalRevenue: orderHistory.reduce((sum, order) => sum + (Number(order.totalAmount) || 0), 0),
+            totalItems: orderHistory.reduce((sum, order) => {
+                const count = (order.items || []).reduce((acc, item) => acc + (Number(item.quantity) || 0), 0);
+                return sum + count;
+            }, 0)
+        };
+
+        res.json({
+            success: true,
+            user: {
+                id: user._id,
+                username: user.username,
+                email: user.email
+            },
+            summary,
+            orders: orderHistory
+        });
+    } catch (err) {
+        res.status(500).json({ success: false, error: 'Failed to fetch order history' });
+    }
+});
+
+app.get('/api/orders/admin-history', isLoggedIn, isAdmin, async (req, res) => {
+    try {
+        const users = await User.find({
+            orderHistory: { $exists: true, $ne: [] }
+        }).select('username email orderHistory').lean();
+
+        const orders = [];
+        const customerMap = new Map();
+
+        users.forEach((customer) => {
+            const customerId = customer._id.toString();
+            const username = customer.username || 'Unknown User';
+            const email = customer.email || 'No email';
+
+            (customer.orderHistory || []).forEach((order) => {
+                const totalAmount = Number(order.totalAmount) || 0;
+                const itemCount = (order.items || []).reduce((sum, item) => sum + (Number(item.quantity) || 0), 0);
+
+                orders.push({
+                    ...order,
+                    customer: {
+                        id: customer._id,
+                        username,
+                        email
+                    },
+                    itemCount
+                });
+
+                if (!customerMap.has(customerId)) {
+                    customerMap.set(customerId, {
+                        customer: {
+                            id: customer._id,
+                            username,
+                            email
+                        },
+                        ordersCount: 0,
+                        totalRevenue: 0,
+                        totalItems: 0
+                    });
+                }
+
+                const stats = customerMap.get(customerId);
+                stats.ordersCount += 1;
+                stats.totalRevenue += totalAmount;
+                stats.totalItems += itemCount;
+            });
+        });
+
+        orders.sort((a, b) => new Date(b.purchasedAt) - new Date(a.purchasedAt));
+
+        const summary = {
+            totalOrders: orders.length,
+            totalRevenue: orders.reduce((sum, order) => sum + (Number(order.totalAmount) || 0), 0),
+            totalItems: orders.reduce((sum, order) => sum + (Number(order.itemCount) || 0), 0),
+            totalCustomers: customerMap.size
+        };
+
+        const customerStats = Array.from(customerMap.values()).sort((a, b) => b.totalRevenue - a.totalRevenue);
+
+        return res.json({
+            success: true,
+            summary,
+            customerStats,
+            orders
+        });
+    } catch (err) {
+        return res.status(500).json({ success: false, error: 'Failed to fetch admin order history' });
+    }
+});
+
+if (!IS_PRODUCTION) {
+    app.get('/', (req, res) => {
+        res.json({
+            success: true,
+            message: 'Backend is running',
+            apiBase: '/api',
+            frontendDevUrl: 'http://localhost:5173'
+        });
+    });
+}
+
+// --- REACT FRONTEND CATCH-ALL (PRODUCTION ONLY) ---
+if (IS_PRODUCTION) {
+    app.get(/^(?!\/api\/).*/, (req, res) => {
+        const clientBuildPath = path.join(__dirname, "../client/build/index.html");
         res.sendFile(clientBuildPath);
-    } else {
-        res.status(404).json({ error: "Run 'npm run build' in the client folder." });
-    }
-});
+    });
+}
 
 app.listen(8081, () => {
     console.log("Server is running on http://localhost:8081");

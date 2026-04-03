@@ -73,6 +73,7 @@ const Navbar = () => {
     };
 
     const cartTarget = user ? '/cart' : '/login';
+    const ordersTarget = user ? '/orders' : '/login';
 
     return (
         <nav className="navbar navbar-expand-md navbar-dark sticky-top shadow-sm" style={{ backgroundColor: '#131921' }}>
@@ -99,6 +100,15 @@ const Navbar = () => {
                     <i className="fa-solid fa-cart-shopping fs-5"></i>
                     <span>Cart</span>
                     <span className="cart-badge">{user ? cartCount : 0}</span>
+                </Link>
+
+                <Link
+                    className="nav-link d-md-none me-3 d-flex align-items-center gap-2"
+                    to={ordersTarget}
+                    onClick={() => setMenuOpen(false)}
+                >
+                    <i className="fa-solid fa-box-open fs-5"></i>
+                    <span>Order History</span>
                 </Link>
 
                 <div className={`collapse navbar-collapse ${menuOpen ? 'show' : ''}`} id="navbarNav">
@@ -146,6 +156,15 @@ const Navbar = () => {
                                     <span className="cart-badge">{user ? cartCount : 0}</span>
                                 </Link>
 
+                                <Link
+                                    className="nav-link me-3 d-none d-md-flex align-items-center gap-2"
+                                    to={ordersTarget}
+                                    onClick={() => setMenuOpen(false)}
+                                >
+                                    <i className="fa-solid fa-box-open fs-5"></i>
+                                    <span>Order History</span>
+                                </Link>
+
                                 {user.role === 'admin' && (
                                     <Link className="nav-link me-2 text-warning" to="/products/new" onClick={() => setMenuOpen(false)}>
                                         <i className="fa-solid fa-plus-square"></i> Add Product
@@ -175,6 +194,7 @@ const Navbar = () => {
                                                 onClick={() => {
                                                     setProfileOpen(false);
                                                     setMenuOpen(false);
+                                                    navigate('/orders');
                                                 }}
                                             >
                                                 My Orders

@@ -25,6 +25,51 @@ const userSchema = new Schema({
                 min: 1
             }
         }
+    ],
+    orderHistory: [
+        {
+            razorpayOrderId: {
+                type: String,
+                required: true
+            },
+            razorpayPaymentId: {
+                type: String,
+                required: true
+            },
+            currency: {
+                type: String,
+                default: 'INR'
+            },
+            totalAmount: {
+                type: Number,
+                required: true,
+                min: 0
+            },
+            items: [
+                {
+                    productId: {
+                        type: Schema.Types.ObjectId,
+                        ref: "Product"
+                    },
+                    title: String,
+                    brand: String,
+                    image: String,
+                    price: {
+                        type: Number,
+                        default: 0
+                    },
+                    quantity: {
+                        type: Number,
+                        default: 1,
+                        min: 1
+                    }
+                }
+            ],
+            purchasedAt: {
+                type: Date,
+                default: Date.now
+            }
+        }
     ]
 });
 
