@@ -11,8 +11,10 @@ const apiClient = axios.create({
 
 export const API = {
     // Products
-    getProducts: (search = '') => 
-        apiClient.get('/products', { params: { search } }),
+    getProducts: (params = {}) =>
+        apiClient.get('/products', {
+            params: typeof params === 'string' ? { search: params } : params
+        }),
     
     getProduct: (id) => 
         apiClient.get(`/products/${id}`),

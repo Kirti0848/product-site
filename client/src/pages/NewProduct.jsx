@@ -11,6 +11,7 @@ const NewProduct = () => {
         brand: '',
         category: '',
         price: '',
+        discount: '0',
         availability: 'In Stock',
         description: '',
         image: null
@@ -52,6 +53,7 @@ const NewProduct = () => {
             data.append('product[brand]', formData.brand);
             data.append('product[category]', formData.category);
             data.append('product[price]', formData.price);
+            data.append('product[discount]', formData.discount);
             data.append('product[availability]', formData.availability);
             data.append('product[description]', formData.description);
             if (formData.image) {
@@ -130,6 +132,24 @@ const NewProduct = () => {
                                 required
                             />
                         </div>
+                        <div className="mb-3 col-md-6">
+                            <label className="form-label fw-bold">Discount</label>
+                            <select
+                                name="discount"
+                                className="form-select"
+                                value={formData.discount}
+                                onChange={handleChange}
+                            >
+                                <option value="0">No Discount</option>
+                                <option value="10">10%</option>
+                                <option value="20">20%</option>
+                                <option value="30">30%</option>
+                                <option value="40">40%</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div className="row">
                         <div className="mb-3 col-md-6">
                             <label className="form-label fw-bold">Availability</label>
                             <select

@@ -17,3 +17,18 @@
 .nav-link:hover {
     color: #febd69 !important;
 }
+
+.dropdown-toggle.btn.btn-link {
+    color: #ffffff !important;
+    font-weight: 500;
+    padding-left: 0;
+    padding-right: 0;
+}
+
+.dropdown-toggle.btn.btn-link:hover {
+    color: #febd69 !important;
+}
+
+.dropdown-item:active {
+    background-color: #232f3e;
+}

@@ -72,6 +72,8 @@ const Navbar = () => {
         await logout();
     };
 
+    const cartTarget = user ? '/cart' : '/login';
+
     return (
         <nav className="navbar navbar-expand-md navbar-dark sticky-top shadow-sm" style={{ backgroundColor: '#131921' }}>
             <div className="container-fluid">
@@ -88,6 +90,16 @@ const Navbar = () => {
                 >
                     <span className="navbar-toggler-icon"></span>
                 </button>
+
+                <Link
+                    className="nav-link cart-link-mobile d-md-none ms-auto me-3 d-flex align-items-center gap-2 position-relative"
+                    to={cartTarget}
+                    onClick={() => setMenuOpen(false)}
+                >
+                    <i className="fa-solid fa-cart-shopping fs-5"></i>
+                    <span>Cart</span>
+                    <span className="cart-badge">{user ? cartCount : 0}</span>
+                </Link>
 
                 <div className={`collapse navbar-collapse ${menuOpen ? 'show' : ''}`} id="navbarNav">
                     <form className="d-flex mx-auto w-50" onSubmit={handleSearch}>
@@ -128,14 +140,11 @@ const Navbar = () => {
                             </>
                         ) : (
                             <>
-                                {user.role === 'user' && (
-                                    <Link className="nav-link me-3 position-relative" to="/cart" onClick={() => setMenuOpen(false)}>
-                                        <i className="fa-solid fa-cart-shopping fs-5"></i>
-                                        <span className="cart-badge">
-                                            {cartCount}
-                                        </span>
-                                    </Link>
-                                )}
+                                <Link className="nav-link me-3 position-relative d-none d-md-flex align-items-center gap-2" to={cartTarget} onClick={() => setMenuOpen(false)}>
+                                    <i className="fa-solid fa-cart-shopping fs-5"></i>
+                                    <span>Cart</span>
+                                    <span className="cart-badge">{user ? cartCount : 0}</span>
+                                </Link>
 
                                 {user.role === 'admin' && (
                                     <Link className="nav-link me-2 text-warning" to="/products/new" onClick={() => setMenuOpen(false)}>

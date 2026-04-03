@@ -1,13 +1,12 @@
 import { useContext } from 'react';
 import { Link } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
-import { API } from '../services/api'; // API import karna zaroori hai
+import { API } from '../services/api';
 
 const ProductCard = ({ product }) => {
     const CART_COUNT_KEY = 'cartCount';
     const { setUser } = useContext(AuthContext);
     
-    // Add to Cart Function
     const handleAddToCart = async () => {
         try {
             const response = await API.addToCart(product._id, 1);
@@ -42,15 +41,22 @@ const ProductCard = ({ product }) => {
         }
     };
 
-    // Image Path Fix: Agar image path '/' se shuru hota hai toh backend URL lagao
     const imagePath = product.image || '';
-const imageUrl = imagePath.startsWith('http')
-    ? imagePath
-    : `http://localhost:8081${encodeURI(imagePath)}`;
+    const imageUrl = imagePath.startsWith('http')
+        ? imagePath
+        : `http://localhost:8081${encodeURI(imagePath)}`;
+
+    const discount = Number(product.discount) || 0;
+    const mrp = discount > 0
+        ? Math.round(product.price / (1 - discount / 100))
+        : null;
     
 
     return (
         <div className="card h-100 shadow-sm border-0 product-card">
+            {discount > 0 && (
+                <span className="discount-badge">-{discount}%</span>
+            )}
             <img
                 src={imageUrl}
                 className="card-img-top"
@@ -67,7 +73,14 @@ const imageUrl = imagePath.startsWith('http')
                 <h6 className="product-title fw-bold text-truncate">{product.title}</h6>
                 <p className="text-muted small mb-2">{product.brand}</p>
                 <div className="d-flex justify-content-between align-items-center mb-3">
-                    <span className="fw-bold text-dark fs-5">₹{product.price}</span>
+                    <div>
+                        <span className="fw-bold text-dark fs-5 d-block">₹{product.price}</span>
+                        {mrp && (
+                            <span className="text-muted small">
+                                MRP <del>₹{mrp}</del>
+                            </span>
+                        )}
+                    </div>
                     <span className={`badge rounded-pill ${product.availability === 'In Stock' ? 'bg-success-subtle text-success' : 'bg-danger-subtle text-danger'}`}>
                         {product.availability}
                     </span>

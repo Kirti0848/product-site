@@ -7,6 +7,7 @@
 body {
     font-family: 'Plus Jakarta Sans', sans-serif;
     background-color: #f8f9fa;
+    color: #1f2937;
 }
 
 html, body, #root {
@@ -20,4 +21,18 @@ main {
 
 footer {
     margin-top: auto;
+}
+
+.discount-badge {
+    position: absolute;
+    top: 14px;
+    left: 14px;
+    z-index: 2;
+    background: #d62828;
+    color: #fff;
+    font-size: 0.75rem;
+    font-weight: 800;
+    border-radius: 999px;
+    padding: 0.35rem 0.6rem;
+    box-shadow: 0 8px 18px rgba(214, 40, 40, 0.2);
 }

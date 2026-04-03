@@ -20,7 +20,7 @@ app.use(cors({
         'http://localhost:3000', 
         'http://localhost:5173', 
         'http://127.0.0.1:3000', 
-        'http://127.0.0.1:5173'
+        'http://127.0.0.1:5173',
     ],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
@@ -28,8 +28,8 @@ app.use(cors({
 }));
 
 const razorpay = new Razorpay({
-    key_id: process.env.RAZORPAY_KEY_ID || 'rzp_live_SXM7ZDeIFRMjXV',
-    key_secret: process.env.RAZORPAY_KEY_SECRET || 'xStzabL5nY8P0PSGmutce3bE'
+    key_id: process.env.RAZORPAY_KEY_ID || 'rzp_test_SYzJH3fq8frE0V',
+    key_secret: process.env.RAZORPAY_KEY_SECRET || '28pI67ueyIjdDhl3dmYr7j0J'
 });
 
 // --- SESSION CONFIGURATION ---
@@ -147,12 +147,29 @@ app.get('/api/auth/profile', (req, res) => {
 // --- PRODUCT ROUTES (All with /api for React) ---
 
 app.get("/api/products", async (req, res) => {
-    let { search } = req.query;
+    let { search, category, minPrice, maxPrice, discount } = req.query;
     try {
         let query = {};
         if (search && search.trim() !== "") {
             const regex = new RegExp(search, 'i');
             query = { $or: [{ title: regex }, { brand: regex }] };
+        }
+        if (category && category !== 'All') {
+            query.category = new RegExp(`^${category.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i');
+        }
+        const hasMinPrice = minPrice !== undefined && minPrice !== '';
+        const hasMaxPrice = maxPrice !== undefined && maxPrice !== '';
+        if (hasMinPrice || hasMaxPrice) {
+            query.price = {};
+            if (hasMinPrice) {
+                query.price.$gte = Number(minPrice);
+            }
+            if (hasMaxPrice) {
+                query.price.$lte = Number(maxPrice);
+            }
+        }
+        if (discount !== undefined && discount !== '') {
+            query.discount = { $gte: Number(discount) };
         }
         const products = await Product.find(query);
         res.json({ products });
@@ -164,6 +181,7 @@ app.get("/api/products", async (req, res) => {
 app.post("/api/products", isLoggedIn, isAdmin, upload.single('product[image]'), async (req, res) => {
     try {
         const productData = req.body.product;
+        productData.discount = Number(productData.discount) || 0;
         if (req.file) {
             productData.image = `/uploads/${req.file.filename}`;
         }
@@ -188,6 +206,7 @@ app.get("/api/products/:id", async (req, res) => {
 app.put("/api/products/:id", isLoggedIn, isAdmin, upload.single('product[image]'), async (req, res) => {
     try {
         let updatedData = { ...req.body.product };
+        updatedData.discount = Number(updatedData.discount) || 0;
         if (req.file) updatedData.image = `/uploads/${req.file.filename}`;
         const updated = await Product.findByIdAndUpdate(req.params.id, updatedData, { new: true });
         res.json({ success: true, product: updated }); 

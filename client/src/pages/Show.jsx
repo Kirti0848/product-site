@@ -103,6 +103,10 @@ const Show = () => {
     const imageUrl = imagePath.startsWith('http')
         ? imagePath
         : `http://localhost:8081${encodeURI(imagePath)}`;
+    const discount = Number(product.discount) || 0;
+    const mrp = discount > 0
+        ? Math.round(product.price / (1 - discount / 100))
+        : null;
 
     return (
         <div className="container product-container">
@@ -155,13 +159,15 @@ const Show = () => {
                     <hr />
 
                     <div className="mb-4">
-                        <div className="d-flex align-items-baseline">
-                            <span className="text-danger fs-4 fw-light me-2">-15%</span>
+                        <div className="d-flex align-items-baseline flex-wrap gap-2">
+                            {discount > 0 && <span className="text-danger fs-4 fw-light me-2">-{discount}%</span>}
                             <span className="price-tag">₹{product.price}</span>
                         </div>
-                        <p className="text-muted small">
-                            M.R.P.: <del>₹{Math.round(product.price * 1.15)}</del>
-                        </p>
+                        {mrp && (
+                            <p className="text-muted small">
+                                M.R.P.: <del>₹{mrp}</del>
+                            </p>
+                        )}
                         <p className="small text-dark mb-0">
                             <i className="fas fa-info-circle text-muted me-1"></i> Inclusive of all taxes
                         </p>

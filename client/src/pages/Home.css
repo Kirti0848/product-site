@@ -1,4 +1,70 @@
 :root {
+    --panel-bg: #ffffff;
+    --panel-border: #e7eaf0;
+    --accent: #232f3e;
+    --accent-soft: #f2f5f8;
+}
+
+.home-shell {
+    max-width: 1540px;
+}
+
+.filter-panel {
+    background: var(--panel-bg);
+    border: 1px solid var(--panel-border);
+    border-radius: 24px;
+    padding: 1.25rem;
+    position: sticky;
+    top: 96px;
+}
+
+.filter-chip {
+    border: 1px solid #ced4da;
+    background: #fff;
+    color: #495057;
+    border-radius: 999px;
+    padding: 0.45rem 0.8rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+.filter-chip:hover,
+.filter-chip.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+}
+
+.filter-summary {
+    line-height: 1.5;
+}
+
+.navbar-filter-pill {
+    border: 1px solid rgba(35, 47, 62, 0.18);
+    background: var(--accent-soft);
+    color: var(--accent);
+    border-radius: 999px;
+    padding: 0.35rem 0.75rem;
+    font-size: 0.82rem;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+.navbar-filter-pill:hover {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+}
+
+@media (max-width: 991.98px) {
+    .filter-panel {
+        position: static;
+        top: auto;
+    }
+}
+
+:root {
     --card-border-radius: 20px;
     --primary-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
     --hover-shadow: 0 15px 35px rgba(0, 0, 0, 0.12);
